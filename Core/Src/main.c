@@ -25,12 +25,17 @@
 #include "gpio.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 void proccesDmaData(uint8_t* sign,uint16_t len);
 void calculateMemory();
 void sendData(uint8_t* data,uint16_t len);
+void pwmToLed(uint8_t* sign,uint16_t len);
+int checkMode(uint8_t* sign,uint16_t len);
+char *convert (uint8_t *a);
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -65,14 +70,9 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-int small=0;
-int capitals =0;
+int mode =2; // 2 = Manual 1 = Automatically  0-none
 
-int s=0;
-int l=0;
 
-int startBit=0;
-int counter =0;
 /* USER CODE END 0 */
 
 /**
@@ -129,8 +129,6 @@ int main(void)
 	  calculateMemory();
 	  LL_mDelay(1000);
 
-
-
   }
 
 }
@@ -178,37 +176,141 @@ void SystemClock_Config(void)
 void proccesDmaData(uint8_t* sign,uint16_t len)
 {
 	uint8_t *tx_data;
-	for(int j=0;j<len;j++){
-		if (*(sign+j)=='#'){
-			startBit=1;
-		}
-		if (startBit==1 && *(sign+j)>='a' && *(sign+j)<='z'){
-			s++;
-			counter++;
-		}
-		if (startBit==1 && *(sign+j)>='A' && *(sign+j)<='Z'){
-			l++;
-			counter++;
-		}
-		if (*(sign+j)=='$'){
-			capitals =l;
-			small=s;
-			s=0;
-			l=0;
-			startBit=0;
-			counter=0;
-			int len_data = asprintf(&tx_data, "Small letters %d and capital letters %d\n\r",small,capitals);
+const char automatic[6]="$auto$";
+const char manually[8]="$manual$";
+char *ret;
+int result=2;
+
+     // ret=strstr(sign,automatic);
+     // int len_data = asprintf(&tx_data, "%s\n\r",ret);
+      //			sendData(tx_data,len_data);
+      //			free(tx_data);
+      //result=strcmp(ret,automatic);
+      //if(result==0){
+    //	  mode=1;
+      //}
+
+        mode=checkMode(sign,len);
+
+
+		if (mode == 1){
+			int len_data = asprintf(&tx_data, "Mode is set to:  automatic\n\r");
 			sendData(tx_data,len_data);
 			free(tx_data);
 		}
-		if(startBit==1 && counter>=35){
-			l =0;
-			s =0;
-			counter =0;
-			startBit=0;
+		if (mode == 2){
+			pwmToLed(sign,len);
+			LL_mDelay(50);
+			int len_data = asprintf(&tx_data, "Mode is set to:  Manually\n\r");
+			sendData(tx_data,len_data);
+			free(tx_data);
+		}
+
+		if (mode == 0){
+			int len_data = asprintf(&tx_data, "Mode is set to:  none\n\r");
+			sendData(tx_data,len_data);
+			free(tx_data);
 		}
 	}
+
+void pwmToLed(uint8_t* sign,uint16_t len){
+	uint8_t *tx_data;
+	int count=0;
+	int startBit=0;
+	int number=0;
+	char str[len];
+	char *ptr;
+	number=atoi(str);
+	char breakset[] = "0123456789";
+	int len_data = asprintf(&tx_data, "The brightness is set to: : %d %\n\r",number);
+									sendData(tx_data,len_data);
+									free(tx_data);
+
+	for(int j=0;j<len;j++){
+		str[j] = *(sign+j);
+		/*if (*(sign+j)=='P'&&startBit==0){
+			startBit=1;
+		}
+
+		if(startBit==1 && (*(sign+j)=='W') && (count == 0)){
+				count++;
+		}
+			if(startBit==1 && (*(sign+j)=='M') && (count == 1)){
+				count++;
+				number=atoi(sign);
+				int len_data = asprintf(&tx_data, "The brightness is set to: : %d %\n\r",number);
+						sendData(tx_data,len_data);
+						free(tx_data);
+			}*/
+	}
+	number = atoi(strpbrk(str, breakset));
+	count=0;
 }
+
+int checkMode(uint8_t* sign,uint16_t len){
+	int count=0;
+	int startBit=0;
+	for(int j=0;j<len;j++){
+			if (*(sign+j)=='$'&&startBit==0){
+				startBit=1;
+
+			}
+
+			if(startBit==1 && (*(sign+j)=='a') && (count == 0)){
+					count++;
+
+				}
+				if(startBit==1 && (*(sign+j)=='u') && (count == 1)){
+					count++;
+
+				}
+				if(startBit==1 && (*(sign+j)=='t') && (count == 2)){
+					count++;
+
+				}
+				if(startBit==1 && (*(sign+j)=='o') && (count == 3)){
+					count++;
+
+				}
+			    if ((*(sign+j)=='$')&&startBit==1 && (count == 4)){
+				startBit=0;
+				count=0;
+				return 1;
+			    }
+
+			    if(startBit==1 && (*(sign+j)=='m') && count == 0){
+			    	count++;
+			    	}
+			    if(startBit==1 && (*(sign+j)=='a') && count == 1){
+			    	count++;
+			    	}
+			    if(startBit==1 && (*(sign+j)=='n') && count == 2){
+			    	count++;
+			    	}
+			    if(startBit==1 && (*(sign+j)=='u') && count == 3){
+			    	count++;
+			    	}
+			    if(startBit==1 && (*(sign+j)=='a') && count == 4){
+			    	count++;
+			    	}
+			    if(startBit==1 && (*(sign+j)=='l') && count == 5){
+			    	count++;
+			    	}
+			    if ((*(sign+j)=='$')&&startBit==1 && count == 6){
+			    	startBit=0;
+			    	count=0;
+			    	return 2;
+			    	}
+
+
+
+
+
+   }
+	return mode;
+
+}
+
 
 
 void sendData(uint8_t* data,uint16_t len)
@@ -222,14 +324,15 @@ void calculateMemory()
 	uint16_t occupied;
 	uint8_t *tx_data;
 	uint16_t len_data;
-	float percent = 0;
+	int percent = 0;
+
 
 	size = DMA_USART2_BUFFER_SIZE;
 	occupied = DMA_USART2_BUFFER_SIZE - LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6);
 	percent = 100.0/size*occupied;
-	len_data = asprintf(&tx_data, "Buffer capacity: %3d bytes, occupied memory: %3d bytes, load [in ~%%]: %3d%%\n\r",size,occupied,(int)percent);
-	sendData(tx_data,len_data);
-	free(tx_data);
+	//len_data = asprintf(&tx_data, "Buffer capacity: %3d bytes, occupied memory: %3d bytes, load [in ~%%]: %3d%%\n\r",size,occupied,percent);
+	//sendData(tx_data,len_data);
+	//free(tx_data);
 }
 /* USER CODE END 4 */
 
