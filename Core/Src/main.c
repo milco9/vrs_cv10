@@ -176,10 +176,10 @@ void SystemClock_Config(void)
 void proccesDmaData(uint8_t* sign,uint16_t len)
 {
 	uint8_t *tx_data;
-const char automatic[6]="$auto$";
-const char manually[8]="$manual$";
-char *ret;
-int result=2;
+	const char automatic[6]="$auto$";
+	const char manually[8]="$manual$";
+	char *ret;
+	int result=2;
 
      // ret=strstr(sign,automatic);
      // int len_data = asprintf(&tx_data, "%s\n\r",ret);
@@ -190,35 +190,34 @@ int result=2;
     //	  mode=1;
       //}
 
-        mode=checkMode(sign,len);
+	mode=checkMode(sign,len);
 
 
-		if (mode == 1){
-			int len_data = asprintf(&tx_data, "Mode is set to:  automatic\n\r");
-			sendData(tx_data,len_data);
-			free(tx_data);
-		}
-		if (mode == 2){
-			pwmToLed(sign,len);
-			LL_mDelay(50);
-			int len_data = asprintf(&tx_data, "Mode is set to:  Manually\n\r");
-			sendData(tx_data,len_data);
-			free(tx_data);
-		}
-
-		if (mode == 0){
-			int len_data = asprintf(&tx_data, "Mode is set to:  none\n\r");
-			sendData(tx_data,len_data);
-			free(tx_data);
-		}
+	if (mode == 1){
+		int len_data = asprintf(&tx_data, "Mode is set to:  automatic\n\r");
+		sendData(tx_data,len_data);
+		free(tx_data);
 	}
+	if (mode == 2){
+		pwmToLed(sign,len);
+		LL_mDelay(50);
+		int len_data = asprintf(&tx_data, "Mode is set to:  Manually\n\r");
+		sendData(tx_data,len_data);
+		free(tx_data);
+	}
+
+	if (mode == 0){
+		int len_data = asprintf(&tx_data, "Mode is set to:  none\n\r");
+		sendData(tx_data,len_data);
+		free(tx_data);
+	}
+}
 
 void pwmToLed(uint8_t* sign,uint16_t len){
 	uint8_t *tx_data;
 	int count=0;
 	int startBit=0;
 	int number=0;
-	char str[len];
 	char *ptr;
 	number=atoi(str);
 	char breakset[] = "0123456789";
@@ -301,17 +300,19 @@ int checkMode(uint8_t* sign,uint16_t len){
 			    	count=0;
 			    	return 2;
 			    	}
-
-
-
-
-
    }
 	return mode;
 
 }
 
-
+char *toString(uint8_t* sign,uint16_t len)
+{
+	char *str;
+	for(int j=0;j<len;j++){
+		*(str+j) = *(sign+j);
+	}
+	return *str;
+}
 
 void sendData(uint8_t* data,uint16_t len)
 {
