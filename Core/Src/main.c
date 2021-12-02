@@ -36,6 +36,7 @@ void sendData(uint8_t* data,uint16_t len);
 void pwmToLed(uint8_t* sign,uint16_t len);
 int checkMode(uint8_t* sign,uint16_t len);
 char *convert (uint8_t *a);
+char *toString(uint8_t* sign,uint16_t len);
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -176,20 +177,6 @@ void SystemClock_Config(void)
 void proccesDmaData(uint8_t* sign,uint16_t len)
 {
 	uint8_t *tx_data;
-	const char automatic[6]="$auto$";
-	const char manually[8]="$manual$";
-	char *ret;
-	int result=2;
-
-     // ret=strstr(sign,automatic);
-     // int len_data = asprintf(&tx_data, "%s\n\r",ret);
-      //			sendData(tx_data,len_data);
-      //			free(tx_data);
-      //result=strcmp(ret,automatic);
-      //if(result==0){
-    //	  mode=1;
-      //}
-
 	mode=checkMode(sign,len);
 
 
@@ -201,7 +188,7 @@ void proccesDmaData(uint8_t* sign,uint16_t len)
 	if (mode == 2){
 		pwmToLed(sign,len);
 		LL_mDelay(50);
-		int len_data = asprintf(&tx_data, "Mode is set to:  Manually\n\r");
+		int len_data = asprintf(&tx_data, "Mode is set to:  manual\n\r");
 		sendData(tx_data,len_data);
 		free(tx_data);
 	}
@@ -215,103 +202,30 @@ void proccesDmaData(uint8_t* sign,uint16_t len)
 
 void pwmToLed(uint8_t* sign,uint16_t len){
 	uint8_t *tx_data;
-	int count=0;
-	int startBit=0;
 	int number=0;
-	char *ptr;
-	number=atoi(str);
+	char str[len];
+	for(int j=0;j<len;j++){
+		str[j] = *(sign+j);
+	}
 	char breakset[] = "0123456789";
+	number = atoi(strpbrk(str, breakset));
 	int len_data = asprintf(&tx_data, "The brightness is set to: : %d %\n\r",number);
 									sendData(tx_data,len_data);
 									free(tx_data);
-
-	for(int j=0;j<len;j++){
-		str[j] = *(sign+j);
-		/*if (*(sign+j)=='P'&&startBit==0){
-			startBit=1;
-		}
-
-		if(startBit==1 && (*(sign+j)=='W') && (count == 0)){
-				count++;
-		}
-			if(startBit==1 && (*(sign+j)=='M') && (count == 1)){
-				count++;
-				number=atoi(sign);
-				int len_data = asprintf(&tx_data, "The brightness is set to: : %d %\n\r",number);
-						sendData(tx_data,len_data);
-						free(tx_data);
-			}*/
-	}
-	number = atoi(strpbrk(str, breakset));
-	count=0;
 }
 
 int checkMode(uint8_t* sign,uint16_t len){
-	int count=0;
-	int startBit=0;
+	char str[len];
 	for(int j=0;j<len;j++){
-			if (*(sign+j)=='$'&&startBit==0){
-				startBit=1;
-
-			}
-
-			if(startBit==1 && (*(sign+j)=='a') && (count == 0)){
-					count++;
-
-				}
-				if(startBit==1 && (*(sign+j)=='u') && (count == 1)){
-					count++;
-
-				}
-				if(startBit==1 && (*(sign+j)=='t') && (count == 2)){
-					count++;
-
-				}
-				if(startBit==1 && (*(sign+j)=='o') && (count == 3)){
-					count++;
-
-				}
-			    if ((*(sign+j)=='$')&&startBit==1 && (count == 4)){
-				startBit=0;
-				count=0;
-				return 1;
-			    }
-
-			    if(startBit==1 && (*(sign+j)=='m') && count == 0){
-			    	count++;
-			    	}
-			    if(startBit==1 && (*(sign+j)=='a') && count == 1){
-			    	count++;
-			    	}
-			    if(startBit==1 && (*(sign+j)=='n') && count == 2){
-			    	count++;
-			    	}
-			    if(startBit==1 && (*(sign+j)=='u') && count == 3){
-			    	count++;
-			    	}
-			    if(startBit==1 && (*(sign+j)=='a') && count == 4){
-			    	count++;
-			    	}
-			    if(startBit==1 && (*(sign+j)=='l') && count == 5){
-			    	count++;
-			    	}
-			    if ((*(sign+j)=='$')&&startBit==1 && count == 6){
-			    	startBit=0;
-			    	count=0;
-			    	return 2;
-			    	}
-   }
-	return mode;
-
-}
-
-char *toString(uint8_t* sign,uint16_t len)
-{
-	char *str;
-	for(int j=0;j<len;j++){
-		*(str+j) = *(sign+j);
+		str[j] = *(sign+j);
 	}
-	return *str;
+	if(strstr(str,"$auto$")){
+		mode = 1;
+	}
+	else if(strstr(str,"$manual$")){
+		mode = 2;
+	}
+	return mode;
 }
 
 void sendData(uint8_t* data,uint16_t len)
