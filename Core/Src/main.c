@@ -19,6 +19,9 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 #include "main.h"
 #include "dma.h"
 #include "usart.h"
@@ -28,8 +31,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
 void proccesDmaData(uint8_t* sign,uint16_t len);
 void calculateMemory();
 void sendData(uint8_t* data,uint16_t len);
@@ -123,12 +124,11 @@ int main(void)
   /* USER CODE BEGIN 3 */
   while (1)
   {
+		//USART2_PutBuffer(tx_data, sizeof(tx_data));
+		//LL_mDelay(1000);
+		calculateMemory();
+		LL_mDelay(1000);
     /* USER CODE END WHILE */
-
-	//USART2_PutBuffer(tx_data, sizeof(tx_data));
-	//LL_mDelay(1000);
-	  calculateMemory();
-	  LL_mDelay(1000);
 
   }
 

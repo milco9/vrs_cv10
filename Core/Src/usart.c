@@ -117,7 +117,7 @@ void MX_USART2_UART_Init(void)
   LL_USART_Enable(USART2);
 }
 
-
+/* USER CODE BEGIN 1 */
 void USART2_PutBuffer(uint8_t *buffer, uint8_t length)
 {
 	LL_DMA_SetMemoryAddress(DMA1, LL_DMA_CHANNEL_7, (uint32_t)buffer);
@@ -162,10 +162,6 @@ void USART2_CheckDmaReception(void)
 		old_pos = 0;
 	}
 }
-
-
-/* USER CODE BEGIN 1 */
-
 /* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
